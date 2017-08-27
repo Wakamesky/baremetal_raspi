@@ -6,6 +6,7 @@ static inline uint32_t setGPIO(uint32_t register_num, uint32_t mode, uint32_t in
 /*
 static inline uint32_t setGPIO(uint32_t register_num, uint32_t mode, uint32_t index){
 	*((uint32_t*)(0x20200000 + register_num*0x4)) &= ~(uint32_t)(0x7  << (index * 3));
+	*((uint32_t*)(0x20200000 + register_num*0x4)) |=  (uint32_t)(mode << (index * 3));
 }
 */
 
@@ -19,26 +20,40 @@ int main(void)
 	setGPIO(1, 0x4, 5);
 	// end initialize GPIO
 
-	// initialize UART -> Base Address = 0x202010000
+	// initialize UART -> Base Address = 0x20201000
 	// Invadidate UART -> (UARTEN =) UART_CR[0] = 0
-	// *UART_CR = 0x2010000 + 0x30
-	*((uint32_t*)(0x20201000 + 0x30)) &= ~(uint32_t)1;
-	*((uint32_t*)(0x20201000 + 0x30)) |=  (uint32_t)0;
+	// *UART_CR = 0x202010000 + 0x30
+	*((uint32_t*)(0x20201000 + 0x30)) &= ~(uint32_t)0x1;
+	*((uint32_t*)(0x20201000 + 0x30)) |=  (uint32_t)0x0;
 
-      /*#########################################################################
-	# Already set -> let their value hold				 	#
-	# Control Register : TXE -> 1 , RXE -> 1			 	#
-	# Stopbit -> 1bit						 	#
-	#  |---> Register address : LCRH Register -> Base Address + 0x2c	#
-	#  |---> Bit -> [3] bit							#
-	# Parity -> 0								#
-	#  |---> Register address : LCRH Register -> Base Address + 0x2c	#
-	#  |---> 0 -> PEN : [1] bit						#
-	# FIFO   -> 0								#
-	#  |---> Register address : LCRH Register -> Base Address + 0x2c	#
-	#  |---> 0 -> FEN : [4] bit						#
-	# end already set							#
-	#########################################################################*/
+	// Already set -> let their value hold
+	// Control Register : Base Address + 0x2c
+	//  |---> TXE -> 1
+	//	   |---> [8] bit
+	//  |---> RXE -> 1
+	//	   |---> [9] bit
+	*((uint32_t*)(0x20201000 + 0x2c)) &= ~(uint32_t)(0x3 << 8);
+	*((uint32_t*)(0x20201000 + 0x2c)) |=  (uint32_t)(0x3 << 8);
+	
+	// Stopbit -> 1bit						
+	//  |---> Register address : LCRH Register -> Base Address + 0x2c
+	//  |---> Bit -> [3] bit					
+	
+	*((uint32_t*)(0x20201000 + 0x2c)) &= ~(uint32_t)(0x1 << 3);
+	*((uint32_t*)(0x20201000 + 0x2c)) |=  (uint32_t)(0x0 << 3);
+
+	// Parity -> 0								
+	//  |---> Register address : LCRH Register -> Base Address + 0x2c	
+	//  |---> 0 -> PEN : [1] bit						
+	*((uint32_t*)(0x20201000 + 0x2c)) &= ~(uint32_t)(0x1 << 1);
+	*((uint32_t*)(0x20201000 + 0x2c)) |=  (uint32_t)(0x0 << 1);
+
+	// FIFO   -> 0								
+	//  |---> Register address : LCRH Register -> Base Address + 0x2c	
+	//  |---> 0 -> FEN : [4] bit						
+	*((uint32_t*)(0x20201000 + 0x2c)) &= ~(uint32_t)(0x1 << 4);
+	*((uint32_t*)(0x20201000 + 0x2c)) |=  (uint32_t)(0x0 << 4);
+	// end already set							
 	
 	// Needed for set
       /*######################################################################### 
@@ -50,13 +65,13 @@ int main(void)
 	#         |---> Register address : FBRD Register -> Base Address + 0x28	#
 	#         |---> Bit -> [5:0] bit					#
 	#########################################################################*/
-	
-	*((uint32_t*)(0x20201000 + 0x24)) |=  (uint32_t)1;
-	*((uint32_t*)(0x20201000 + 0x28)) |=  (uint32_t)0x28;
+
+	*((uint32_t*)(0x20201000 + 0x24)) =  (uint32_t)0x1;
+	*((uint32_t*)(0x20201000 + 0x28)) =  (uint32_t)0x28;
 	
 	// Databit -> 8bit
 	//  |---> Register address : LCRH Register -> Base Address + 0x2c
-	//  |---> Bit -> [6:5] bit
+	//  |---> Bit -> [6:5] bit -> b11
 
 	*((uint32_t*)(0x20201000 + 0x2c)) &= ~(uint32_t)(0x3 << 5);
 	*((uint32_t*)(0x20201000 + 0x2c)) |=  (uint32_t)(0x3 << 5);
@@ -64,17 +79,19 @@ int main(void)
 	// End needed for set
 	
 	// Vadidate UART -> (UARTEN =) UART_CR[0] = 1
-	*((uint32_t*)(0x20201000 + 0x30)) &= ~(uint32_t)1;
-	*((uint32_t*)(0x20201000 + 0x30)) |=  (uint32_t)1;
+	*((uint32_t*)(0x20201000 + 0x30)) &= ~(uint32_t)0x1;
+	*((uint32_t*)(0x20201000 + 0x30)) |=  (uint32_t)0x1;
 
 	int i = 0;
 
-	char str[11] = "HelloWorld";
+	char str[12] = "HelloWorld\n";
 	
 	while(str[i]!='\0'){
 		*((uint32_t*)(0x20201000)) = (uint32_t)(str[i]);
-		for(int j=0; j<500000; j++){}
+		for(int j=0; j<5000; j++){}
 		i++;
+		if(str[i]=='\0') i=0;
+		else{}
 	}
 
 	return 0;
