@@ -1,9 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-static inline uint32_t setGPIO(uint32_t register_num, uint32_t mode, uint32_t index){
-	*((uint32_t*)(0x20200000 + register_num*0x4)) |= (uint32_t)(mode << (index * 3));
-}
+static inline uint32_t setGPIO(uint32_t register_num, uint32_t mode, uint32_t index);
 
 int main(void)
 {
@@ -29,3 +27,9 @@ int main(void)
 	//初期化ここまで
 	return 0;
 }
+
+static inline uint32_t setGPIO(uint32_t register_num, uint32_t mode, uint32_t index){
+	*((uint32_t*)(0x20200000 + register_num*0x4)) &= ~(uint32_t)(0x7  << (index * 3));
+	*((uint32_t*)(0x20200000 + register_num*0x4)) |=  (uint32_t)(mode << (index * 3));
+}
+
