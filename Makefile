@@ -1,4 +1,4 @@
-CFLAGS=-mfloat-abi=soft -mlittle-endian -O0 -g3
+CFLAGS=-mfloat-abi=soft -mlittle-endian
 CFLAGS+=-fno-builtin -nostartfiles -std=c11
 LDFLAGS=-static -nostdlib
 
