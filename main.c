@@ -13,6 +13,10 @@ int main(void)
 	// end initialize GPIO
 
 	// initialize UART -> Base Address = 0x202010000
+	// Invadidate UART -> (UARTEN =) UART_CR[0] = 0
+	*((uint32_t*)(0x20201000 + 0x30)) &= ~(uint32_t)1;
+	*((uint32_t*)(0x20201000 + 0x30)) |=  (uint32_t)0;
+
       /*#########################################################################
 	# Already set -> let their value hold				 	#
 	# Control Register : TXE -> 1 , RXE -> 1			 	#
@@ -50,7 +54,10 @@ int main(void)
 	*((uint32_t*)(0x20201000 + 0x2c)) |=  (uint32_t)(0x3 << 5);
 
 	// End needed for set
-
+	
+	// Vadidate UART -> (UARTEN =) UART_CR[0] = 1
+	*((uint32_t*)(0x20201000 + 0x30)) &= ~(uint32_t)1;
+	*((uint32_t*)(0x20201000 + 0x30)) |=  (uint32_t)1;
 
 	int i = 0;
 
