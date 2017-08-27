@@ -3,17 +3,25 @@
 
 static inline uint32_t setGPIO(uint32_t register_num, uint32_t mode, uint32_t index);
 
-static inline uint32_t setUART(uint32_t register_num, uint32_t mode, uint32_t index);
+/*
+static inline uint32_t setGPIO(uint32_t register_num, uint32_t mode, uint32_t index){
+	*((uint32_t*)(0x20200000 + register_num*0x4)) &= ~(uint32_t)(0x7  << (index * 3));
+}
+*/
 
 int main(void)
 {
 	// initialize GPIO
+	// GPIO 14 -> TXD0 -> Output mode
 	setGPIO(1, 0x4, 4);
+	
+	// GPIO 15 -> RXD0 -> Input mode
 	setGPIO(1, 0x4, 5);
 	// end initialize GPIO
 
 	// initialize UART -> Base Address = 0x202010000
 	// Invadidate UART -> (UARTEN =) UART_CR[0] = 0
+	// *UART_CR = 0x2010000 + 0x30
 	*((uint32_t*)(0x20201000 + 0x30)) &= ~(uint32_t)1;
 	*((uint32_t*)(0x20201000 + 0x30)) |=  (uint32_t)0;
 
