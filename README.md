@@ -9,6 +9,7 @@ These programs are written for "Raspberry Pi Model B+".
 This repository is consisted of following branches.  
 
 master : This is vital for going work for latters' programs.  
+But these files are also in others branch.
 (Needed for correct now)
 
 led_blink : Just blinking green LED on the Raspberry Pi.  
