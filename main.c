@@ -5,14 +5,8 @@ static inline uint32_t setGPIO(uint32_t register_num, uint32_t mode, uint32_t in
 
 static inline uint32_t setUART(uint32_t register_num, uint32_t mode, uint32_t index);
 
-int main(void)
+uint32_t main(void)
 {
-	setGPIO(0, 0x2, 4);
-	setGPIO(2, 0x3, 2);
-	setGPIO(2, 0x3, 4);
-	setGPIO(2, 0x3, 5);
-	setGPIO(2, 0x3, 7);
-
 	setGPIO(1, 0x4, 4);
 	setGPIO(1, 0x4, 5);
 	
