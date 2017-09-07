@@ -1,10 +1,10 @@
-align 4
+.align 4
 .global _start
 _start:
     bl jtag_setup_asm
     // invalidate interrupt
     // cpsid aif <= Comment out
-    
+
     ldr sp, =0x1c000000 // set stack pointer
 
     // clear bss
