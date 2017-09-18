@@ -1,7 +1,15 @@
 .align 4
 .global _start
+
+
+.global init_vectortable_s
+.global init_vectortable_e
+
+.global irq_handler
+
 _start:
     bl jtag_setup_asm
+    bl cpy_vectortable
     // invalidate interrupt
     // cpsid aif <= Comment out
 
@@ -17,11 +25,12 @@ loop:
     str r2 , [r0], #4   // write 0 and rewrite r0 = r0 + 4 (=__bss_start + 4)
     cmp r1, r0      // why #4? because 4byte = 4*8bit = 32bit = sizeof(int)
     ble loop
+
 pre_main:
-    bl init_vectortable
-    svc 2
+    svc #0x1
     bl main
     b .
+
 jtag_setup_asm:
     ldr r1, =0x20200000 @ load GPFSEL address
     ldr r2, =0xffff8fff @ load GPIO4 mask
@@ -38,17 +47,49 @@ jtag_setup_asm:
     str r5, [r1, #8]    @ save GPFSEL2 value
     bx lr
 
-// Added following
-init_vectortable:
-    ldr PC, =hangup         // Reset
-    ldr PC, =hangup         // Undefined
-    ldr PC, =hangup         // SWI
-    ldr PC, =hangup         // Prefetch
-    ldr PC, =hangup         // Abort
-    NOP                     // Reserved
-    ldr PC, =hangup         // IRQ
-    ldr PC, =hangup         // FIQ
+// Ref. Learn Assembler with ARM, p.156
+init_vectortable_s:
+    ldr PC, reset_handler_addr    // Reset
+    ldr PC, undef_handler_addr    // Undefined
+    ldr PC, swi_handler_addr      // SWI
+    ldr PC, pabt_handler_addr     // Prefetch
+    ldr PC, dabt_handler_addr     // Abort
+    NOP                            // Reserved
+    ldr PC, irq_handler_addr      // IRQ
+    ldr PC, fiq_handler_addr      // FIQ
+
+reset_handler_addr:	.word	reset_handler
+undef_handler_addr:	.word	undef_handler
+swi_handler_addr:	.word	swi_handler
+pabt_handler_addr:	.word	pabt_handler
+dabt_handler_addr:	.word	dabt_handler
+irq_handler_addr:	.word	irq_handler
+fiq_handler_addr:	.word	fiq_handler
+init_vectortable_e:
+nop
+
+cpy_vectortable:
+    // Set vectortable
+    MOV r0, #0x00
+    LDR r1, =init_vectortable_s
+    LDR r3, =init_vectortable_e
+keep_loading:
+    LDR r2, [r1, #0x0]
+    STR r2, [r0, #0x0]
+    ADD r0, r0, #0x4
+    ADD r1, r1, #0x4
+    CMP r1, r3
+    BNE keep_loading
+    bx lr
 
 hangup:
-    wfi
-    b hangup
+reset_handler:
+undef_handler:
+pabt_handler:
+dabt_handler:
+irq_handler:
+fiq_handler:
+  b .
+
+swi_handler:
+  b .
